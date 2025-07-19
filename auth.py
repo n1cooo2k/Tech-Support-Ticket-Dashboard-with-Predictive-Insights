@@ -24,9 +24,9 @@ def login():
             
             # Redirect based on user role
             if user.is_admin():
-                return redirect(url_for('main.admin_dashboard'))
+                return redirect(url_for('admin_dashboard'))
             else:
-                return redirect(url_for('main.agent_dashboard'))
+                return redirect(url_for('agent_dashboard'))
         else:
             flash('Invalid username or password', 'error')
     
