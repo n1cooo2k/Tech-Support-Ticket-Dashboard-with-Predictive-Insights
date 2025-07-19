@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Tech Support Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">
+            <i class="fas fa-crown text-purple-600 mr-2"></i>
+            Admin Dashboard
+        </h1>
+        <p class="mt-2 text-gray-600">Manage your tech support operations and monitor system performance</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-ticket-alt text-2xl text-blue-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Tickets</dt>
+                            <dd class="text-lg font-medium text-gray-900">0</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-clock text-2xl text-yellow-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Pending Tickets</dt>
+                            <dd class="text-lg font-medium text-gray-900">0</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-users text-2xl text-green-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Active Agents</dt>
+                            <dd class="text-lg font-medium text-gray-900">1</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-chart-line text-2xl text-purple-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Resolution Rate</dt>
+                            <dd class="text-lg font-medium text-gray-900">100%</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white shadow rounded-lg mb-8">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                <i class="fas fa-bolt text-yellow-500 mr-2"></i>
+                Quick Actions
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    <i class="fas fa-plus mr-2"></i>
+                    Create Ticket
+                </button>
+                <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Add Agent
+                </button>
+                <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out">
+                    <i class="fas fa-chart-bar mr-2"></i>
+                    View Reports
+                </button>
+                <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out">
+                    <i class="fas fa-cog mr-2"></i>
+                    Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity & System Status -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Recent Activity -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="fas fa-history text-blue-500 mr-2"></i>
+                    Recent Activity
+                </h3>
+                <div class="flow-root">
+                    <ul class="-mb-8">
+                        <li class="relative pb-8">
+                            <div class="relative flex space-x-3">
+                                <div>
+                                    <span class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                                        <i class="fas fa-check text-white text-xs"></i>
+                                    </span>
+                                </div>
+                                <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500">System initialized successfully</p>
+                                    </div>
+                                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                        <time>Just now</time>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="relative pb-8">
+                            <div class="relative flex space-x-3">
+                                <div>
+                                    <span class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white">
+                                        <i class="fas fa-user text-white text-xs"></i>
+                                    </span>
+                                </div>
+                                <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500">Admin user logged in</p>
+                                    </div>
+                                    <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                        <time>Just now</time>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="fas fa-server text-green-500 mr-2"></i>
+                    System Status
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="h-2 w-2 bg-green-400 rounded-full mr-3"></div>
+                            <span class="text-sm text-gray-900">Database</span>
+                        </div>
+                        <span class="text-sm text-green-600 font-medium">Operational</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="h-2 w-2 bg-green-400 rounded-full mr-3"></div>
+                            <span class="text-sm text-gray-900">Authentication</span>
+                        </div>
+                        <span class="text-sm text-green-600 font-medium">Operational</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="h-2 w-2 bg-green-400 rounded-full mr-3"></div>
+                            <span class="text-sm text-gray-900">Web Server</span>
+                        </div>
+                        <span class="text-sm text-green-600 font-medium">Operational</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="h-2 w-2 bg-yellow-400 rounded-full mr-3"></div>
+                            <span class="text-sm text-gray-900">ML Analytics</span>
+                        </div>
+                        <span class="text-sm text-yellow-600 font-medium">Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add some interactivity to the dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stats on load
+        const statNumbers = document.querySelectorAll('dd');
+        statNumbers.forEach(function(stat) {
+            stat.style.opacity = '0';
+            stat.style.transform = 'translateY(10px)';
+            setTimeout(function() {
+                stat.style.transition = 'all 0.5s ease-in-out';
+                stat.style.opacity = '1';
+                stat.style.transform = 'translateY(0)';
+            }, 100);
+        });
+
+        // Add click handlers for quick action buttons
+        const quickActionButtons = document.querySelectorAll('button');
+        quickActionButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                const action = this.textContent.trim();
+                alert(`${action} functionality will be implemented in the next phase!`);
+            });
+        });
+    });
+</script>
+{% endblock %}
