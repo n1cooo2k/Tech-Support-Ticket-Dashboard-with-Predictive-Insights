@@ -14,6 +14,9 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <script>
         tailwind.config = {
             theme: {
@@ -49,10 +52,22 @@
                            class="text-gray-900 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
                             <i class="fas fa-tachometer-alt mr-1"></i>Admin Dashboard
                         </a>
+                        <a href="{{ url_for('analytics.analytics_dashboard') }}" 
+                           class="text-gray-900 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-chart-bar mr-1"></i>Analytics
+                        </a>
+                        <a href="{{ url_for('tickets.ticket_list') }}" 
+                           class="text-gray-900 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-list mr-1"></i>Tickets
+                        </a>
                         {% else %}
                         <a href="{{ url_for('agent_dashboard') }}" 
                            class="text-gray-900 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
                             <i class="fas fa-ticket-alt mr-1"></i>My Dashboard
+                        </a>
+                        <a href="{{ url_for('tickets.ticket_list') }}" 
+                           class="text-gray-900 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
+                            <i class="fas fa-list mr-1"></i>My Tickets
                         </a>
                         {% endif %}
                     </div>
