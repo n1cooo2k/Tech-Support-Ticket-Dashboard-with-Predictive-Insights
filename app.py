@@ -3,6 +3,8 @@ from flask_login import LoginManager, login_required, current_user
 from database import init_db
 from models import User
 from auth import auth_bp
+from tickets import tickets_bp
+from ticket_models import Ticket
 import os
 
 def create_app():
@@ -26,6 +28,7 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(tickets_bp)
     
     # Main routes
     @app.route('/')
@@ -44,13 +47,42 @@ def create_app():
         """Admin dashboard"""
         if not current_user.is_admin():
             return redirect(url_for('agent_dashboard'))
-        return render_template('admin_dashboard.html', user=current_user)
+        
+        # Get ticket statistics for admin dashboard
+        try:
+            stats = Ticket.get_stats()
+            recent_tickets = Ticket.get_all(user_role='admin')[:5]  # Get 5 most recent tickets
+        except:
+            stats = {'total': 0, 'open': 0, 'in_progress': 0, 'resolved': 0, 'closed': 0}
+            recent_tickets = []
+        
+        return render_template('admin_dashboard.html', user=current_user, stats=stats, recent_tickets=recent_tickets)
     
     @app.route('/agent/dashboard')
     @login_required
     def agent_dashboard():
         """Agent dashboard"""
-        return render_template('agent_dashboard.html', user=current_user)
+        # Get tickets assigned to this agent
+        try:
+            my_tickets = Ticket.get_all(user_role='agent', user_id=current_user.id)
+            # Calculate agent-specific stats
+            total_tickets = len(my_tickets)
+            open_tickets = len([t for t in my_tickets if t['status'] == 'open'])
+            in_progress = len([t for t in my_tickets if t['status'] == 'in_progress'])
+            resolved_tickets = len([t for t in my_tickets if t['status'] == 'resolved'])
+            
+            agent_stats = {
+                'total': total_tickets,
+                'open': open_tickets,
+                'in_progress': in_progress,
+                'resolved': resolved_tickets
+            }
+        except:
+            my_tickets = []
+            agent_stats = {'total': 0, 'open': 0, 'in_progress': 0, 'resolved': 0}
+        
+        return render_template('agent_dashboard.html', user=current_user, 
+                             my_tickets=my_tickets[:5], stats=agent_stats)
     
     @app.route('/dashboard')
     @login_required
