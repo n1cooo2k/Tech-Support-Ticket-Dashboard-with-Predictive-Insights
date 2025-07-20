@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}{{ dashboard.name }} - Custom Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-chart-bar text-purple-600 mr-2"></i>
+                    {{ dashboard.name }}
+                </h1>
+                {% if dashboard.description %}
+                <p class="mt-2 text-gray-600">{{ dashboard.description }}</p>
+                {% endif %}
+            </div>
+            <div class="flex space-x-3">
+                <a href="{{ url_for('analytics.custom_dashboards') }}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back to Dashboards
+                </a>
+                <button id="refreshData" 
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    Refresh
+                </button>
+                <button onclick="editDashboard()" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out">
+                    <i class="fas fa-edit mr-2"></i>
+                    Edit Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashboardContent">
+        <!-- Content will be dynamically generated based on dashboard config -->
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+            <span class="text-gray-700">Loading dashboard data...</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+<script>
+    // Dashboard configuration from backend
+    const dashboardConfig = {{ dashboard.config | safe }};
+    const dashboardId = {{ dashboard.id }};
+    
+    class CustomDashboardRenderer {
+        constructor(config) {
+            this.config = JSON.parse(config);
+            this.analytics = new AnalyticsDashboard();
+            this.charts = {};
+        }
+
+        async init() {
+            this.showLoading();
+            try {
+                await this.renderDashboard();
+                this.setupEventListeners();
+            } catch (error) {
+                console.error('Error initializing custom dashboard:', error);
+                this.showError('Failed to load dashboard');
+            } finally {
+                this.hideLoading();
+            }
+        }
+
+        async renderDashboard() {
+            const container = document.getElementById('dashboardContent');
+            const layout = this.config.layout || 'grid';
+            const widgets = this.config.widgets || [];
+
+            // Create layout container
+            let layoutClass = this.getLayoutClass(layout);
+            container.innerHTML = `<div class="${layoutClass} gap-6" id="widgetContainer"></div>`;
+            
+            const widgetContainer = document.getElementById('widgetContainer');
+
+            // Render KPI metrics first if included
+            if (widgets.includes('kpi_metrics')) {
+                await this.renderKPIMetrics(widgetContainer);
+            }
+
+            // Render other widgets
+            for (const widget of widgets) {
+                if (widget !== 'kpi_metrics') {
+                    await this.renderWidget(widget, widgetContainer);
+                }
+            }
+        }
+
+        getLayoutClass(layout) {
+            switch(layout) {
+                case 'grid': return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+                case 'masonry': return 'grid grid-cols-1 md:grid-cols-2';
+                case 'single': return 'grid grid-cols-1';
+                default: return 'grid grid-cols-1 md:grid-cols-2';
+            }
+        }
+
+        async renderKPIMetrics(container) {
+            // Create KPI metrics section
+            const kpiSection = document.createElement('div');
+            kpiSection.className = 'col-span-full mb-8';
+            kpiSection.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-clock text-2xl text-blue-600"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Avg Resolution Time</dt>
+                                        <dd id="avgResolutionTime" class="text-lg font-medium text-gray-900">Loading...</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-ticket-alt text-2xl text-green-600"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Total Resolved</dt>
+                                        <dd id="totalResolved" class="text-lg font-medium text-gray-900">Loading...</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-percentage text-2xl text-purple-600"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Resolution Rate</dt>
+                                        <dd id="resolutionRate" class="text-lg font-medium text-gray-900">Loading...</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="p-5">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-trending-up text-2xl text-yellow-600"></i>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">This Week</dt>
+                                        <dd id="thisWeekTickets" class="text-lg font-medium text-gray-900">Loading...</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(kpiSection);
+
+            // Load KPI data
+            await this.analytics.loadResolutionTime();
+        }
+
+        async renderWidget(widgetType, container) {
+            const widgetElement = document.createElement('div');
+            widgetElement.className = 'bg-white shadow rounded-lg';
+            
+            const widgetId = `widget_${widgetType}_${Date.now()}`;
+            
+            switch(widgetType) {
+                case 'category_chart':
+                    widgetElement.innerHTML = this.createChartWidget('Tickets by Category', 'fas fa-chart-pie', 'blue', widgetId);
+                    container.appendChild(widgetElement);
+                    await this.analytics.loadTicketsByCategory();
+                    break;
+                    
+                case 'priority_chart':
+                    widgetElement.innerHTML = this.createChartWidget('Priority Distribution', 'fas fa-exclamation-triangle', 'yellow', widgetId);
+                    container.appendChild(widgetElement);
+                    await this.analytics.loadPriorityDistribution();
+                    break;
+                    
+                case 'time_series':
+                    widgetElement.className += ' lg:col-span-2';
+                    widgetElement.innerHTML = this.createTimeSeriesWidget(widgetId);
+                    container.appendChild(widgetElement);
+                    await this.analytics.loadTimeSeriesData();
+                    break;
+                    
+                case 'status_chart':
+                    widgetElement.innerHTML = this.createChartWidget('Status Distribution', 'fas fa-tasks', 'purple', widgetId);
+                    container.appendChild(widgetElement);
+                    await this.analytics.loadStatusDistribution();
+                    break;
+                    
+                case 'resolution_time':
+                    widgetElement.innerHTML = this.createChartWidget('Resolution Time by Category', 'fas fa-stopwatch', 'red', widgetId);
+                    container.appendChild(widgetElement);
+                    await this.analytics.loadResolutionTime();
+                    break;
+                    
+                case 'agent_performance':
+                    widgetElement.innerHTML = this.createTableWidget('Agent Performance', 'fas fa-users', 'indigo', widgetId);
+                    container.appendChild(widgetElement);
+                    await this.analytics.loadAgentPerformance();
+                    break;
+            }
+        }
+
+        createChartWidget(title, icon, color, widgetId) {
+            return `
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        <i class="${icon} text-${color}-500 mr-2"></i>
+                        ${title}
+                    </h3>
+                    <div class="relative h-64">
+                        <canvas id="${widgetId}"></canvas>
+                    </div>
+                </div>
+            `;
+        }
+
+        createTimeSeriesWidget(widgetId) {
+            return `
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            <i class="fas fa-chart-line text-green-500 mr-2"></i>
+                            Time Series Trends
+                        </h3>
+                        <div class="flex space-x-2">
+                            <button class="time-range-btn px-3 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-800" data-days="7">7D</button>
+                            <button class="time-range-btn px-3 py-1 text-xs font-medium rounded-md text-gray-600 hover:bg-gray-100" data-days="30">30D</button>
+                            <button class="time-range-btn px-3 py-1 text-xs font-medium rounded-md text-gray-600 hover:bg-gray-100" data-days="90">90D</button>
+                        </div>
+                    </div>
+                    <div class="relative h-64">
+                        <canvas id="${widgetId}"></canvas>
+                    </div>
+                </div>
+            `;
+        }
+
+        createTableWidget(title, icon, color, widgetId) {
+            return `
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        <i class="${icon} text-${color}-500 mr-2"></i>
+                        ${title}
+                    </h3>
+                    <div id="${widgetId}" class="overflow-hidden">
+                        <div class="animate-pulse">
+                            <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                            <div class="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                            <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        setupEventListeners() {
+            // Refresh button
+            document.getElementById('refreshData').addEventListener('click', async () => {
+                await this.init();
+            });
+
+            // Time range buttons (if present)
+            document.querySelectorAll('.time-range-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const days = parseInt(e.target.dataset.days);
+                    
+                    // Update button states
+                    document.querySelectorAll('.time-range-btn').forEach(b => {
+                        b.className = 'time-range-btn px-3 py-1 text-xs font-medium rounded-md text-gray-600 hover:bg-gray-100';
+                    });
+                    e.target.className = 'time-range-btn px-3 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-800';
+                    
+                    await this.analytics.loadTimeSeriesData(days);
+                });
+            });
+        }
+
+        showLoading() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+
+        hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        showError(message) {
+            console.error(message);
+            alert(message);
+        }
+    }
+
+    function editDashboard() {
+        // Redirect to edit page (to be implemented)
+        alert('Dashboard editing functionality will be implemented in the next phase!');
+    }
+
+    // Initialize custom dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        const customDashboard = new CustomDashboardRenderer('{{ dashboard.config | safe }}');
+        customDashboard.init();
+    });
+</script>
+{% endblock %}
