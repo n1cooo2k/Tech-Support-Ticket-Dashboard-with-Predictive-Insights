@@ -68,6 +68,20 @@ def init_db():
         )
     ''')
     
+    # Create custom dashboards table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS custom_dashboards (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            config TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+    
     # Create default admin user if it doesn't exist
     cursor.execute('SELECT COUNT(*) FROM users WHERE role = "admin"')
     admin_count = cursor.fetchone()[0]
