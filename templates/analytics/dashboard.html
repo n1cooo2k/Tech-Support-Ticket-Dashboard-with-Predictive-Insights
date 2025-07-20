@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - Tech Support Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+                    Analytics Dashboard
+                </h1>
+                <p class="mt-2 text-gray-600">Comprehensive insights and performance metrics for your support operations</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{{ url_for('analytics.custom_dashboards') }}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out">
+                    <i class="fas fa-plus mr-2"></i>
+                    Custom Dashboards
+                </a>
+                <button id="refreshData" 
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-clock text-2xl text-blue-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Avg Resolution Time</dt>
+                            <dd id="avgResolutionTime" class="text-lg font-medium text-gray-900">Loading...</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-ticket-alt text-2xl text-green-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Resolved</dt>
+                            <dd id="totalResolved" class="text-lg font-medium text-gray-900">Loading...</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-percentage text-2xl text-purple-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Resolution Rate</dt>
+                            <dd id="resolutionRate" class="text-lg font-medium text-gray-900">Loading...</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-trending-up text-2xl text-yellow-600"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">This Week</dt>
+                            <dd id="thisWeekTickets" class="text-lg font-medium text-gray-900">Loading...</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Tickets by Category -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+                    Tickets by Category
+                </h3>
+                <div class="relative h-64">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority Distribution -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                    Priority Distribution
+                </h3>
+                <div class="relative h-64">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Series and Status Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <!-- Time Series Trends -->
+        <div class="lg:col-span-2 bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        <i class="fas fa-chart-line text-green-500 mr-2"></i>
+                        Time Series Trends
+                    </h3>
+                    <div class="flex space-x-2">
+                        <button class="time-range-btn px-3 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-800" data-days="7">7D</button>
+                        <button class="time-range-btn px-3 py-1 text-xs font-medium rounded-md text-gray-600 hover:bg-gray-100" data-days="30">30D</button>
+                        <button class="time-range-btn px-3 py-1 text-xs font-medium rounded-md text-gray-600 hover:bg-gray-100" data-days="90">90D</button>
+                    </div>
+                </div>
+                <div class="relative h-64">
+                    <canvas id="timeSeriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Distribution -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="fas fa-tasks text-purple-500 mr-2"></i>
+                    Status Distribution
+                </h3>
+                <div class="relative h-64">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolution Time Analysis -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Resolution Time by Category -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="fas fa-stopwatch text-red-500 mr-2"></i>
+                    Resolution Time by Category
+                </h3>
+                <div class="relative h-64">
+                    <canvas id="resolutionTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Performance -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <i class="fas fa-users text-indigo-500 mr-2"></i>
+                    Agent Performance
+                </h3>
+                <div id="agentPerformanceTable" class="overflow-hidden">
+                    <div class="animate-pulse">
+                        <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div class="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span class="text-gray-700">Loading analytics data...</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+<script>
+    // Initialize analytics dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        const analytics = new AnalyticsDashboard();
+        analytics.init();
+    });
+</script>
+{% endblock %}
