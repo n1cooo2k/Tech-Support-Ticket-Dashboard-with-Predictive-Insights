@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Support Tickets{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Support Tickets</h1>
+                    <p class="mt-2 text-gray-600">Manage and track support tickets with advanced filtering</p>
+                </div>
+                <a href="{{ url_for('tickets.create_ticket') }}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    New Ticket
+                </a>
+            </div>
+        </div>
+
+        <!-- Advanced Filters -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <form method="GET" action="{{ url_for('tickets.ticket_list') }}" id="filterForm">
+                <!-- Search and Basic Filters Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                        <input type="text" name="search" value="{{ current_filters.get('search', '') }}" 
+                               placeholder="Search tickets by title or description..." 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Status</option>
+                            <option value="open" {% if current_filters.get('status') == 'open' %}selected{% endif %}>Open</option>
+                            <option value="in_progress" {% if current_filters.get('status') == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="resolved" {% if current_filters.get('status') == 'resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="closed" {% if current_filters.get('status') == 'closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                        <select name="priority" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Priority</option>
+                            <option value="high" {% if current_filters.get('priority') == 'high' %}selected{% endif %}>High</option>
+                            <option value="medium" {% if current_filters.get('priority') == 'medium' %}selected{% endif %}>Medium</option>
+                            <option value="low" {% if current_filters.get('priority') == 'low' %}selected{% endif %}>Low</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select name="category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.name }}" {% if current_filters.get('category') == category.name %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- User and Date Filters Row -->
+                {% if current_user.is_admin() %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Created By</label>
+                        <select name="created_by" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Users</option>
+                            {% for user in users %}
+                            <option value="{{ user.username }}" {% if current_filters.get('created_by') == user.username %}selected{% endif %}>{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
+                        <select name="assigned_to" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Assignments</option>
+                            <option value="unassigned" {% if current_filters.get('assigned_to') == 'unassigned' %}selected{% endif %}>Unassigned</option>
+                            {% for user in users %}
+                            <option value="{{ user.username }}" {% if current_filters.get('assigned_to') == user.username %}selected{% endif %}>{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Created From</label>
+                        <input type="date" name="date_from" value="{{ current_filters.get('date_from', '') }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Created To</label>
+                        <input type="date" name="date_to" value="{{ current_filters.get('date_to', '') }}" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Sorting and Actions Row -->
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                            <select name="sort_by" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="created_at" {% if current_filters.get('sort_by') == 'created_at' %}selected{% endif %}>Created Date</option>
+                                <option value="updated_at" {% if current_filters.get('sort_by') == 'updated_at' %}selected{% endif %}>Updated Date</option>
+                                <option value="title" {% if current_filters.get('sort_by') == 'title' %}selected{% endif %}>Title</option>
+                                <option value="status" {% if current_filters.get('sort_by') == 'status' %}selected{% endif %}>Status</option>
+                                <option value="priority" {% if current_filters.get('sort_by') == 'priority' %}selected{% endif %}>Priority</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                            <select name="sort_order" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="DESC" {% if current_filters.get('sort_order') == 'DESC' %}selected{% endif %}>Newest First</option>
+                                <option value="ASC" {% if current_filters.get('sort_order') == 'ASC' %}selected{% endif %}>Oldest First</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200">
+                            Apply Filters
+                        </button>
+                        <a href="{{ url_for('tickets.ticket_list') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200">
+                            Clear All
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Summary -->
+        {% if current_filters %}
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-medium text-blue-800">Active Filters</h3>
+                    <div class="mt-1 flex flex-wrap gap-2">
+                        {% if current_filters.get('search') %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Search: "{{ current_filters.search }}"
+                        </span>
+                        {% endif %}
+                        {% if current_filters.get('status') %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Status: {{ current_filters.status.replace('_', ' ').title() }}
+                        </span>
+                        {% endif %}
+                        {% if current_filters.get('priority') %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Priority: {{ current_filters.priority.title() }}
+                        </span>
+                        {% endif %}
+                        {% if current_filters.get('category') %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Category: {{ current_filters.category }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-sm text-blue-600">
+                    {{ tickets|length }} ticket(s) found
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Tickets List -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            {% if tickets %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for ticket in tickets %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <div class="flex items-start">
+                                    <div class="flex-1">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            <a href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) }}" 
+                                               class="hover:text-blue-600 transition-colors duration-200">
+                                                #{{ ticket.id }} - {{ ticket.title }}
+                                            </a>
+                                        </div>
+                                        <div class="text-sm text-gray-500 mt-1">
+                                            {{ ticket.description[:100] }}{% if ticket.description|length > 100 %}...{% endif %}
+                                        </div>
+                                        <div class="text-xs text-gray-400 mt-1">
+                                            Created by {{ ticket.created_by_username }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% set status_colors = {
+                                    'open': 'bg-red-100 text-red-800',
+                                    'in_progress': 'bg-yellow-100 text-yellow-800',
+                                    'resolved': 'bg-green-100 text-green-800',
+                                    'closed': 'bg-gray-100 text-gray-800'
+                                } %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ status_colors.get(ticket.status, 'bg-gray-100 text-gray-800') }}">
+                                    {{ ticket.status.replace('_', ' ').title() }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% set priority_colors = {
+                                    'high': 'bg-red-100 text-red-800',
+                                    'medium': 'bg-yellow-100 text-yellow-800',
+                                    'low': 'bg-green-100 text-green-800'
+                                } %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ priority_colors.get(ticket.priority, 'bg-gray-100 text-gray-800') }}">
+                                    {{ ticket.priority.title() }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if ticket.category_name %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white" 
+                                      style="background-color: {{ ticket.category_color }}">
+                                    {{ ticket.category_name }}
+                                </span>
+                                {% else %}
+                                <span class="text-gray-400 text-sm">No category</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {% if ticket.assigned_to_username %}
+                                    {{ ticket.assigned_to_username }}
+                                {% else %}
+                                    <span class="text-gray-400">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ ticket.created_at[:10] }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if ticket.updated_at %}
+                                    {{ ticket.updated_at[:10] }}
+                                {% else %}
+                                    {{ ticket.created_at[:10] }}
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <a href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) }}" 
+                                       class="text-blue-600 hover:text-blue-900 transition-colors duration-200">View</a>
+                                    <a href="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id) }}" 
+                                       class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200">Edit</a>
+                                    {% if current_user.is_admin() %}
+                                    <button onclick="deleteTicket({{ ticket.id }})" 
+                                            class="text-red-600 hover:text-red-900 transition-colors duration-200">Delete</button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No tickets found</h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    {% if current_filters %}
+                        Try adjusting your filters or <a href="{{ url_for('tickets.ticket_list') }}" class="text-blue-600 hover:text-blue-500">clear all filters</a>.
+                    {% else %}
+                        Get started by creating a new support ticket.
+                    {% endif %}
+                </p>
+                <div class="mt-6">
+                    <a href="{{ url_for('tickets.create_ticket') }}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        New Ticket
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-submit form on filter changes
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('filterForm');
+    const inputs = form.querySelectorAll('input, select');
+    
+    inputs.forEach(input => {
+        if (input.type === 'text') {
+            // Debounce text inputs
+            let timeout;
+            input.addEventListener('input', function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    form.submit();
+                }, 500);
+            });
+        } else {
+            // Immediate submit for selects and dates
+            input.addEventListener('change', function() {
+                form.submit();
+            });
+        }
+    });
+});
+
+// Delete ticket function
+function deleteTicket(ticketId) {
+    if (confirm('Are you sure you want to delete this ticket? This action cannot be undone.')) {
+        fetch(`/tickets/${ticketId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Error deleting ticket');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting ticket');
+        });
+    }
+}
+</script>
+{% endblock %}
