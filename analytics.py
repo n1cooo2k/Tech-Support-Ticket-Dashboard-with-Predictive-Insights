@@ -315,7 +315,7 @@ def view_custom_dashboard(dashboard_id):
     if not dashboard or dashboard['user_id'] != current_user.id:
         return redirect(url_for('analytics.custom_dashboards'))
     
-    return render_template('analytics/custom_dashboard.html', dashboard=dashboard, user=current_user)
+    return render_template('analytics/custom_dashboard_simple.html', dashboard=dashboard, user=current_user)
 
 # API Routes for Custom Dashboards
 @analytics_bp.route('/api/create-dashboard', methods=['POST'])

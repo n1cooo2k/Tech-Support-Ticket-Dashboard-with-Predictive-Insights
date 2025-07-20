@@ -282,7 +282,7 @@ class AnalyticsDashboard {
         }
 
         this.charts.resolutionTime = new Chart(ctx, {
-            type: 'horizontalBar',
+            type: 'bar',
             data: {
                 labels: data.map(item => item.category),
                 datasets: [{
