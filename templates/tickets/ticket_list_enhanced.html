@@ -304,13 +304,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('filterForm');
     const inputs = form.querySelectorAll('input, select');
     
-    inputs.forEach(input => {
+    inputs.forEach(function(input) {
         if (input.type === 'text') {
             // Debounce text inputs
             let timeout;
             input.addEventListener('input', function() {
                 clearTimeout(timeout);
-                timeout = setTimeout(() => {
+                timeout = setTimeout(function() {
                     form.submit();
                 }, 500);
             });
@@ -326,20 +326,20 @@ document.addEventListener('DOMContentLoaded', function() {
 // Delete ticket function
 function deleteTicket(ticketId) {
     if (confirm('Are you sure you want to delete this ticket? This action cannot be undone.')) {
-        fetch(`/tickets/${ticketId}/delete`, {
+        fetch('/tickets/' + ticketId + '/delete', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             }
         })
-        .then(response => {
+        .then(function(response) {
             if (response.ok) {
                 location.reload();
             } else {
                 alert('Error deleting ticket');
             }
         })
-        .catch(error => {
+        .catch(function(error) {
             console.error('Error:', error);
             alert('Error deleting ticket');
         });
