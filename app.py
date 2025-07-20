@@ -4,6 +4,7 @@ from database import init_db
 from models import User
 from auth import auth_bp
 from tickets import tickets_bp
+from analytics import analytics_bp
 from ticket_models import Ticket
 import os
 
@@ -29,6 +30,7 @@ def create_app():
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(tickets_bp)
+    app.register_blueprint(analytics_bp)
     
     # Main routes
     @app.route('/')
