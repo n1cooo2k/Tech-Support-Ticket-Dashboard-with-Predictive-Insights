@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+
+{% block title %}Predictive Insights - Tech Support Dashboard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-purple-100 rounded-lg">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Predictive Insights</h1>
+                        <p class="text-gray-600">AI-powered predictions for ticket categorization and resolution times</p>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="retrainBtn" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Retrain Models
+                    </button>
+                    <a href="{{ url_for('predictions.insights') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        View Insights
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Model Status Card -->
+        <div class="bg-white rounded-lg shadow-sm border mb-8">
+            <div class="p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">ML Model Status</h2>
+                <div id="modelStatus" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Status will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction Interface -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Single Prediction -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Single Ticket Prediction</h2>
+                    <form id="singlePredictionForm">
+                        <div class="mb-4">
+                            <label for="ticketDescription" class="block text-sm font-medium text-gray-700 mb-2">
+                                Ticket Description
+                            </label>
+                            <textarea 
+                                id="ticketDescription" 
+                                name="description" 
+                                rows="4" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter ticket description to get predictions..."
+                                required
+                            ></textarea>
+                        </div>
+                        <button 
+                            type="submit" 
+                            class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                        >
+                            Get Predictions
+                        </button>
+                    </form>
+                    
+                    <!-- Results -->
+                    <div id="singlePredictionResults" class="mt-6 hidden">
+                        <h3 class="text-md font-semibold text-gray-900 mb-3">Prediction Results</h3>
+                        <div class="space-y-3">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-700">Predicted Category:</span>
+                                    <span id="predictedCategory" class="text-sm font-semibold text-purple-600"></span>
+                                </div>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-sm font-medium text-gray-700">Confidence:</span>
+                                    <span id="categoryConfidence" class="text-sm text-gray-600"></span>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-700">Expected Resolution Time:</span>
+                                    <span id="resolutionTime" class="text-sm font-semibold text-green-600"></span>
+                                </div>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-sm font-medium text-gray-700">Confidence Level:</span>
+                                    <span id="confidenceLevel" class="text-sm text-gray-600"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batch Prediction -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Batch Prediction</h2>
+                    <form id="batchPredictionForm">
+                        <div class="mb-4">
+                            <label for="batchDescriptions" class="block text-sm font-medium text-gray-700 mb-2">
+                                Multiple Descriptions (one per line)
+                            </label>
+                            <textarea 
+                                id="batchDescriptions" 
+                                name="descriptions" 
+                                rows="6" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter multiple ticket descriptions, one per line..."
+                                required
+                            ></textarea>
+                        </div>
+                        <button 
+                            type="submit" 
+                            class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                        >
+                            Process Batch
+                        </button>
+                    </form>
+                    
+                    <!-- Batch Results -->
+                    <div id="batchPredictionResults" class="mt-6 hidden">
+                        <h3 class="text-md font-semibold text-gray-900 mb-3">Batch Results</h3>
+                        <div id="batchResultsList" class="space-y-2 max-h-64 overflow-y-auto">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Examples -->
+        <div class="bg-white rounded-lg shadow-sm border mt-8">
+            <div class="p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Examples</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <button class="example-btn text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" 
+                            data-description="Cannot login to system, password reset not working">
+                        <div class="font-medium text-gray-900">Login Issue</div>
+                        <div class="text-sm text-gray-600">Cannot login to system, password reset not working</div>
+                    </button>
+                    <button class="example-btn text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" 
+                            data-description="Incorrect charges on my monthly invoice, need refund">
+                        <div class="font-medium text-gray-900">Billing Problem</div>
+                        <div class="text-sm text-gray-600">Incorrect charges on my monthly invoice, need refund</div>
+                    </button>
+                    <button class="example-btn text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" 
+                            data-description="System crashes when trying to save data, losing work">
+                        <div class="font-medium text-gray-900">Technical Bug</div>
+                        <div class="text-sm text-gray-600">System crashes when trying to save data, losing work</div>
+                    </button>
+                    <button class="example-btn text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" 
+                            data-description="Request new dashboard widget for analytics">
+                        <div class="font-medium text-gray-900">Feature Request</div>
+                        <div class="text-sm text-gray-600">Request new dashboard widget for analytics</div>
+                    </button>
+                    <button class="example-btn text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" 
+                            data-description="Need help updating my profile information">
+                        <div class="font-medium text-gray-900">Account Support</div>
+                        <div class="text-sm text-gray-600">Need help updating my profile information</div>
+                    </button>
+                    <button class="example-btn text-left p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors" 
+                            data-description="How to use the new reporting feature">
+                        <div class="font-medium text-gray-900">General Inquiry</div>
+                        <div class="text-sm text-gray-600">How to use the new reporting feature</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
+        <div class="flex items-center space-x-3">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+            <span class="text-gray-700">Processing predictions...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load model status
+    loadModelStatus();
+    
+    // Single prediction form
+    document.getElementById('singlePredictionForm').addEventListener('submit', handleSinglePrediction);
+    
+    // Batch prediction form
+    document.getElementById('batchPredictionForm').addEventListener('submit', handleBatchPrediction);
+    
+    // Retrain button
+    document.getElementById('retrainBtn').addEventListener('click', handleRetrain);
+    
+    // Example buttons
+    document.querySelectorAll('.example-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const description = this.dataset.description;
+            document.getElementById('ticketDescription').value = description;
+            handleSinglePrediction(null, description);
+        });
+    });
+});
+
+function loadModelStatus() {
+    fetch('/predictions/api/model-status')
+        .then(response => response.json())
+        .then(data => {
+            const statusContainer = document.getElementById('modelStatus');
+            statusContainer.innerHTML = `
+                <div class="text-center">
+                    <div class="text-2xl font-bold ${data.models_loaded ? 'text-green-600' : 'text-red-600'}">
+                        ${data.models_loaded ? 'Active' : 'Inactive'}
+                    </div>
+                    <div class="text-sm text-gray-600">Model Status</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600">${data.total_tickets}</div>
+                    <div class="text-sm text-gray-600">Total Tickets</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-600">${data.training_data_size}</div>
+                    <div class="text-sm text-gray-600">Training Data</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold ${getRecommendationColor(data.recommendation)}">${data.recommendation}</div>
+                    <div class="text-sm text-gray-600">Data Quality</div>
+                </div>
+            `;
+        })
+        .catch(error => {
+            console.error('Error loading model status:', error);
+        });
+}
+
+function getRecommendationColor(recommendation) {
+    switch(recommendation) {
+        case 'Good': return 'text-green-600';
+        case 'Limited': return 'text-yellow-600';
+        case 'Insufficient': return 'text-red-600';
+        default: return 'text-gray-600';
+    }
+}
+
+function handleSinglePrediction(event, description = null) {
+    if (event) event.preventDefault();
+    
+    const desc = description || document.getElementById('ticketDescription').value;
+    if (!desc.trim()) return;
+    
+    showLoading();
+    
+    fetch('/predictions/api/predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ description: desc })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            displaySinglePrediction(data.predictions);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        console.error('Error:', error);
+        alert('Error making prediction');
+    });
+}
+
+function displaySinglePrediction(predictions) {
+    document.getElementById('predictedCategory').textContent = predictions.predicted_category;
+    document.getElementById('categoryConfidence').textContent = predictions.category_confidence + '%';
+    document.getElementById('resolutionTime').textContent = predictions.predicted_resolution_time_display;
+    document.getElementById('confidenceLevel').textContent = predictions.confidence_level;
+    
+    document.getElementById('singlePredictionResults').classList.remove('hidden');
+}
+
+function handleBatchPrediction(event) {
+    event.preventDefault();
+    
+    const descriptions = document.getElementById('batchDescriptions').value
+        .split('\n')
+        .filter(desc => desc.trim());
+    
+    if (descriptions.length === 0) return;
+    
+    showLoading();
+    
+    fetch('/predictions/api/batch-predict', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ descriptions: descriptions })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            displayBatchPredictions(data.results);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        console.error('Error:', error);
+        alert('Error making batch predictions');
+    });
+}
+
+function displayBatchPredictions(results) {
+    const container = document.getElementById('batchResultsList');
+    container.innerHTML = '';
+    
+    results.forEach((result, index) => {
+        const div = document.createElement('div');
+        div.className = 'bg-gray-50 p-3 rounded-lg';
+        div.innerHTML = `
+            <div class="text-sm font-medium text-gray-900 mb-1">
+                ${result.description.substring(0, 50)}${result.description.length > 50 ? '...' : ''}
+            </div>
+            <div class="flex justify-between text-xs text-gray-600">
+                <span>${result.predictions.predicted_category} (${result.predictions.category_confidence}%)</span>
+                <span>${result.predictions.predicted_resolution_time_display}</span>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+    
+    document.getElementById('batchPredictionResults').classList.remove('hidden');
+}
+
+function handleRetrain() {
+    if (!confirm('Are you sure you want to retrain the ML models? This may take a few minutes.')) {
+        return;
+    }
+    
+    showLoading();
+    
+    fetch('/predictions/api/retrain', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            alert('Models retrained successfully!');
+            loadModelStatus();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        console.error('Error:', error);
+        alert('Error retraining models');
+    });
+}
+
+function showLoading() {
+    document.getElementById('loadingModal').classList.remove('hidden');
+    document.getElementById('loadingModal').classList.add('flex');
+}
+
+function hideLoading() {
+    document.getElementById('loadingModal').classList.add('hidden');
+    document.getElementById('loadingModal').classList.remove('flex');
+}
+</script>
+{% endblock %}
