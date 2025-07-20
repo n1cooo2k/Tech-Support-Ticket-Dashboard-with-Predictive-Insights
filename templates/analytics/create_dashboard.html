@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}Create Custom Dashboard - Tech Support Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-plus text-purple-600 mr-2"></i>
+                    Create Custom Dashboard
+                </h1>
+                <p class="mt-2 text-gray-600">Build a personalized analytics dashboard with your preferred metrics</p>
+            </div>
+            <a href="{{ url_for('analytics.custom_dashboards') }}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to Dashboards
+            </a>
+        </div>
+    </div>
+
+    <!-- Dashboard Builder Form -->
+    <div class="bg-white shadow rounded-lg">
+        <form id="dashboardForm" class="space-y-6 p-6">
+            <!-- Basic Information -->
+            <div class="border-b border-gray-200 pb-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+                <div class="grid grid-cols-1 gap-6">
+                    <div>
+                        <label for="dashboardName" class="block text-sm font-medium text-gray-700">Dashboard Name</label>
+                        <input type="text" id="dashboardName" name="name" required
+                               class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                               placeholder="Enter dashboard name">
+                    </div>
+                    <div>
+                        <label for="dashboardDescription" class="block text-sm font-medium text-gray-700">Description (Optional)</label>
+                        <textarea id="dashboardDescription" name="description" rows="3"
+                                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                  placeholder="Describe what this dashboard will show"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Widget Selection -->
+            <div class="border-b border-gray-200 pb-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Select Widgets</h3>
+                <p class="text-sm text-gray-600 mb-4">Choose the charts and metrics you want to include in your dashboard</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Category Chart -->
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            <input type="checkbox" name="widgets" value="category_chart" checked
+                                   class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+                                    <span class="text-sm font-medium text-gray-900">Tickets by Category</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Pie chart showing ticket distribution across categories</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Priority Chart -->
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            <input type="checkbox" name="widgets" value="priority_chart" checked
+                                   class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                                    <span class="text-sm font-medium text-gray-900">Priority Distribution</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Bar chart showing tickets by priority level</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Time Series -->
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            <input type="checkbox" name="widgets" value="time_series" checked
+                                   class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <i class="fas fa-chart-line text-green-500 mr-2"></i>
+                                    <span class="text-sm font-medium text-gray-900">Time Series Trends</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Line chart showing ticket creation and resolution over time</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Status Chart -->
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            <input type="checkbox" name="widgets" value="status_chart"
+                                   class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <i class="fas fa-tasks text-purple-500 mr-2"></i>
+                                    <span class="text-sm font-medium text-gray-900">Status Distribution</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Pie chart showing tickets by current status</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Resolution Time -->
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            <input type="checkbox" name="widgets" value="resolution_time"
+                                   class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <i class="fas fa-stopwatch text-red-500 mr-2"></i>
+                                    <span class="text-sm font-medium text-gray-900">Resolution Time Analysis</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Bar chart showing average resolution time by category</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Agent Performance -->
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            <input type="checkbox" name="widgets" value="agent_performance"
+                                   class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <i class="fas fa-users text-indigo-500 mr-2"></i>
+                                    <span class="text-sm font-medium text-gray-900">Agent Performance</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Table showing individual agent metrics and performance</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- KPI Metrics -->
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            <input type="checkbox" name="widgets" value="kpi_metrics" checked
+                                   class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <i class="fas fa-tachometer-alt text-blue-600 mr-2"></i>
+                                    <span class="text-sm font-medium text-gray-900">Key Metrics Cards</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Summary cards showing important KPIs and statistics</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Custom Filters -->
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                        <label class="flex items-start space-x-3 cursor-pointer">
+                            <input type="checkbox" name="widgets" value="custom_filters"
+                                   class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <i class="fas fa-filter text-gray-600 mr-2"></i>
+                                    <span class="text-sm font-medium text-gray-900">Custom Filters</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Interactive filters to customize data views</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layout Options -->
+            <div class="border-b border-gray-200 pb-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Layout Options</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="layout" value="grid" checked class="sr-only">
+                        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors layout-option">
+                            <div class="text-center">
+                                <i class="fas fa-th text-2xl text-gray-600 mb-2"></i>
+                                <h4 class="text-sm font-medium text-gray-900">Grid Layout</h4>
+                                <p class="text-xs text-gray-500">Organized grid with equal-sized widgets</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer">
+                        <input type="radio" name="layout" value="masonry" class="sr-only">
+                        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors layout-option">
+                            <div class="text-center">
+                                <i class="fas fa-th-large text-2xl text-gray-600 mb-2"></i>
+                                <h4 class="text-sm font-medium text-gray-900">Masonry Layout</h4>
+                                <p class="text-xs text-gray-500">Dynamic layout with varying widget sizes</p>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer">
+                        <input type="radio" name="layout" value="single" class="sr-only">
+                        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors layout-option">
+                            <div class="text-center">
+                                <i class="fas fa-square text-2xl text-gray-600 mb-2"></i>
+                                <h4 class="text-sm font-medium text-gray-900">Single Column</h4>
+                                <p class="text-xs text-gray-500">Stacked layout with full-width widgets</p>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="previewDashboard()" 
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                    <i class="fas fa-eye mr-2"></i>
+                    Preview
+                </button>
+                <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                    <i class="fas fa-save mr-2"></i>
+                    Create Dashboard
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 max-w-6xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Dashboard Preview</h3>
+                <button onclick="closePreview()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="previewContent" class="min-h-96 bg-gray-50 rounded-lg p-4">
+                <!-- Preview content will be generated here -->
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="closePreview()" 
+                        class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    Close Preview
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Handle layout selection
+    document.querySelectorAll('input[name="layout"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.layout-option').forEach(option => {
+                option.classList.remove('border-purple-500', 'bg-purple-50');
+                option.classList.add('border-gray-200');
+            });
+            
+            if (this.checked) {
+                const option = this.nextElementSibling;
+                option.classList.remove('border-gray-200');
+                option.classList.add('border-purple-500', 'bg-purple-50');
+            }
+        });
+    });
+
+    // Initialize default layout selection
+    document.querySelector('input[name="layout"]:checked').dispatchEvent(new Event('change'));
+
+    // Handle form submission
+    document.getElementById('dashboardForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const widgets = [];
+        
+        // Collect selected widgets
+        document.querySelectorAll('input[name="widgets"]:checked').forEach(checkbox => {
+            widgets.push(checkbox.value);
+        });
+        
+        const dashboardConfig = {
+            name: formData.get('name'),
+            description: formData.get('description'),
+            widgets: widgets,
+            layout: formData.get('layout')
+        };
+        
+        // Submit to backend
+        fetch('/analytics/api/create-dashboard', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(dashboardConfig)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = `/analytics/custom/${data.dashboard_id}`;
+            } else {
+                alert('Failed to create dashboard: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to create dashboard');
+        });
+    });
+
+    function previewDashboard() {
+        const widgets = [];
+        document.querySelectorAll('input[name="widgets"]:checked').forEach(checkbox => {
+            widgets.push(checkbox.value);
+        });
+        
+        const layout = document.querySelector('input[name="layout"]:checked').value;
+        
+        // Generate preview content
+        let previewHTML = `<div class="grid ${getLayoutClasses(layout)} gap-4">`;
+        
+        widgets.forEach(widget => {
+            previewHTML += generateWidgetPreview(widget);
+        });
+        
+        previewHTML += '</div>';
+        
+        document.getElementById('previewContent').innerHTML = previewHTML;
+        document.getElementById('previewModal').classList.remove('hidden');
+    }
+
+    function closePreview() {
+        document.getElementById('previewModal').classList.add('hidden');
+    }
+
+    function getLayoutClasses(layout) {
+        switch(layout) {
+            case 'grid': return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+            case 'masonry': return 'grid-cols-1 md:grid-cols-2';
+            case 'single': return 'grid-cols-1';
+            default: return 'grid-cols-1 md:grid-cols-2';
+        }
+    }
+
+    function generateWidgetPreview(widget) {
+        const widgetInfo = {
+            'category_chart': { title: 'Tickets by Category', icon: 'fas fa-chart-pie', color: 'blue' },
+            'priority_chart': { title: 'Priority Distribution', icon: 'fas fa-exclamation-triangle', color: 'yellow' },
+            'time_series': { title: 'Time Series Trends', icon: 'fas fa-chart-line', color: 'green' },
+            'status_chart': { title: 'Status Distribution', icon: 'fas fa-tasks', color: 'purple' },
+            'resolution_time': { title: 'Resolution Time Analysis', icon: 'fas fa-stopwatch', color: 'red' },
+            'agent_performance': { title: 'Agent Performance', icon: 'fas fa-users', color: 'indigo' },
+            'kpi_metrics': { title: 'Key Metrics Cards', icon: 'fas fa-tachometer-alt', color: 'blue' },
+            'custom_filters': { title: 'Custom Filters', icon: 'fas fa-filter', color: 'gray' }
+        };
+        
+        const info = widgetInfo[widget] || { title: 'Unknown Widget', icon: 'fas fa-question', color: 'gray' };
+        
+        return `
+            <div class="bg-white rounded-lg shadow p-4 border-2 border-dashed border-gray-300">
+                <div class="flex items-center mb-2">
+                    <i class="${info.icon} text-${info.color}-500 mr-2"></i>
+                    <h4 class="text-sm font-medium text-gray-900">${info.title}</h4>
+                </div>
+                <div class="h-32 bg-gray-100 rounded flex items-center justify-center">
+                    <span class="text-gray-500 text-sm">Chart Preview</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('previewModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closePreview();
+        }
+    });
+</script>
+{% endblock %}
