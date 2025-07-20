@@ -36,38 +36,104 @@ class Ticket:
             raise e
     
     @staticmethod
-    def get_all(user_role=None, user_id=None):
-        """Get all tickets based on user role"""
+    def get_all(user_role=None, user_id=None, filters=None):
+        """Get all tickets based on user role and filters"""
         conn = get_db_connection()
         
-        if user_role == 'admin':
-            # Admin can see all tickets
-            query = '''
-                SELECT t.*, c.name as category_name, c.color as category_color,
-                       creator.username as created_by_username,
-                       assignee.username as assigned_to_username
-                FROM tickets t
-                LEFT JOIN categories c ON t.category_id = c.id
-                LEFT JOIN users creator ON t.created_by = creator.id
-                LEFT JOIN users assignee ON t.assigned_to = assignee.id
-                ORDER BY t.created_at DESC
-            '''
-            tickets = conn.execute(query).fetchall()
-        else:
-            # Agents can only see tickets assigned to them or created by them
-            query = '''
-                SELECT t.*, c.name as category_name, c.color as category_color,
-                       creator.username as created_by_username,
-                       assignee.username as assigned_to_username
-                FROM tickets t
-                LEFT JOIN categories c ON t.category_id = c.id
-                LEFT JOIN users creator ON t.created_by = creator.id
-                LEFT JOIN users assignee ON t.assigned_to = assignee.id
-                WHERE t.assigned_to = ? OR t.created_by = ?
-                ORDER BY t.created_at DESC
-            '''
-            tickets = conn.execute(query, (user_id, user_id)).fetchall()
+        # Base query
+        base_query = '''
+            SELECT t.*, c.name as category_name, c.color as category_color,
+                   creator.username as created_by_username,
+                   assignee.username as assigned_to_username
+            FROM tickets t
+            LEFT JOIN categories c ON t.category_id = c.id
+            LEFT JOIN users creator ON t.created_by = creator.id
+            LEFT JOIN users assignee ON t.assigned_to = assignee.id
+        '''
         
+        where_conditions = []
+        params = []
+        
+        # Role-based filtering
+        if user_role != 'admin':
+            where_conditions.append('(t.assigned_to = ? OR t.created_by = ?)')
+            params.extend([user_id, user_id])
+        
+        # Apply filters if provided
+        if filters:
+            # Search filter
+            if filters.get('search'):
+                search_term = f"%{filters['search']}%"
+                where_conditions.append('(LOWER(t.title) LIKE LOWER(?) OR LOWER(t.description) LIKE LOWER(?))')
+                params.extend([search_term, search_term])
+            
+            # Status filter
+            if filters.get('status'):
+                where_conditions.append('t.status = ?')
+                params.append(filters['status'])
+            
+            # Priority filter
+            if filters.get('priority'):
+                where_conditions.append('t.priority = ?')
+                params.append(filters['priority'])
+            
+            # Category filter
+            if filters.get('category'):
+                where_conditions.append('c.name = ?')
+                params.append(filters['category'])
+            
+            # User filter (created by)
+            if filters.get('created_by'):
+                where_conditions.append('creator.username = ?')
+                params.append(filters['created_by'])
+            
+            # Assigned to filter
+            if filters.get('assigned_to'):
+                if filters['assigned_to'] == 'unassigned':
+                    where_conditions.append('t.assigned_to IS NULL')
+                else:
+                    where_conditions.append('assignee.username = ?')
+                    params.append(filters['assigned_to'])
+            
+            # Date range filters
+            if filters.get('date_from'):
+                where_conditions.append('DATE(t.created_at) >= ?')
+                params.append(filters['date_from'])
+            
+            if filters.get('date_to'):
+                where_conditions.append('DATE(t.created_at) <= ?')
+                params.append(filters['date_to'])
+            
+            # Last updated filter
+            if filters.get('updated_from'):
+                where_conditions.append('DATE(t.updated_at) >= ?')
+                params.append(filters['updated_from'])
+            
+            if filters.get('updated_to'):
+                where_conditions.append('DATE(t.updated_at) <= ?')
+                params.append(filters['updated_to'])
+        
+        # Construct final query
+        if where_conditions:
+            query = base_query + ' WHERE ' + ' AND '.join(where_conditions)
+        else:
+            query = base_query
+        
+        # Add sorting
+        sort_by = filters.get('sort_by', 'created_at') if filters else 'created_at'
+        sort_order = filters.get('sort_order', 'DESC') if filters else 'DESC'
+        
+        # Validate sort parameters
+        valid_sort_fields = ['created_at', 'updated_at', 'title', 'status', 'priority']
+        if sort_by not in valid_sort_fields:
+            sort_by = 'created_at'
+        
+        if sort_order not in ['ASC', 'DESC']:
+            sort_order = 'DESC'
+        
+        query += f' ORDER BY t.{sort_by} {sort_order}'
+        
+        tickets = conn.execute(query, params).fetchall()
         conn.close()
         return tickets
     
