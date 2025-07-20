@@ -317,6 +317,78 @@ def view_custom_dashboard(dashboard_id):
     
     return render_template('analytics/custom_dashboard.html', dashboard=dashboard, user=current_user)
 
+# API Routes for Custom Dashboards
+@analytics_bp.route('/api/create-dashboard', methods=['POST'])
+@login_required
+def api_create_dashboard():
+    """API endpoint to create custom dashboard"""
+    if not current_user.is_admin():
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    try:
+        data = request.get_json()
+        
+        if not data.get('name'):
+            return jsonify({'error': 'Dashboard name is required'}), 400
+        
+        dashboard_id = CustomDashboard.create(
+            name=data['name'],
+            description=data.get('description', ''),
+            config=data,
+            user_id=current_user.id
+        )
+        
+        return jsonify({'success': True, 'dashboard_id': dashboard_id})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@analytics_bp.route('/api/delete-dashboard/<int:dashboard_id>', methods=['DELETE'])
+@login_required
+def api_delete_dashboard(dashboard_id):
+    """API endpoint to delete custom dashboard"""
+    if not current_user.is_admin():
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    try:
+        dashboard = CustomDashboard.get_by_id(dashboard_id)
+        if not dashboard or dashboard['user_id'] != current_user.id:
+            return jsonify({'error': 'Dashboard not found'}), 404
+        
+        CustomDashboard.delete(dashboard_id)
+        return jsonify({'success': True})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@analytics_bp.route('/api/duplicate-dashboard/<int:dashboard_id>', methods=['POST'])
+@login_required
+def api_duplicate_dashboard(dashboard_id):
+    """API endpoint to duplicate custom dashboard"""
+    if not current_user.is_admin():
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    try:
+        dashboard = CustomDashboard.get_by_id(dashboard_id)
+        if not dashboard or dashboard['user_id'] != current_user.id:
+            return jsonify({'error': 'Dashboard not found'}), 404
+        
+        # Parse the config and create a copy
+        config = json.loads(dashboard['config'])
+        config['name'] = f"{config['name']} (Copy)"
+        
+        new_dashboard_id = CustomDashboard.create(
+            name=config['name'],
+            description=dashboard['description'],
+            config=config,
+            user_id=current_user.id
+        )
+        
+        return jsonify({'success': True, 'dashboard_id': new_dashboard_id})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 class CustomDashboard:
     """Custom Dashboard model"""
     
