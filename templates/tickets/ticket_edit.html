@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Ticket #{{ ticket.id }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Edit Ticket #{{ ticket.id }}</h1>
+            <p class="mt-2 text-gray-600">Update the details for this support ticket</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <form method="POST" action="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id) }}" class="p-6 space-y-6">
+                <!-- Title -->
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                        Title *
+                    </label>
+                    <input type="text" 
+                           name="title" 
+                           id="title" 
+                           value="{{ ticket.title }}"
+                           required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                        Description *
+                    </label>
+                    <textarea name="description" 
+                              id="description" 
+                              rows="6" 
+                              required
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ ticket.description }}</textarea>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+                        Status
+                    </label>
+                    <select name="status" 
+                            id="status" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
+                        <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+
+                <!-- Priority -->
+                <div>
+                    <label for="priority" class="block text-sm font-medium text-gray-700 mb-2">
+                        Priority
+                    </label>
+                    <select name="priority" 
+                            id="priority" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="low" {% if ticket.priority == 'low' %}selected{% endif %}>Low</option>
+                        <option value="medium" {% if ticket.priority == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="high" {% if ticket.priority == 'high' %}selected{% endif %}>High</option>
+                    </select>
+                </div>
+
+                <!-- Category -->
+                <div>
+                    <label for="category_id" class="block text-sm font-medium text-gray-700 mb-2">
+                        Category
+                    </label>
+                    <select name="category_id" 
+                            id="category_id" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select a category</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if ticket.category_id == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Assign to Agent (Admin only) -->
+                {% if current_user.is_admin() and agents %}
+                <div>
+                    <label for="assigned_to" class="block text-sm font-medium text-gray-700 mb-2">
+                        Assign to Agent
+                    </label>
+                    <select name="assigned_to" 
+                            id="assigned_to" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Unassigned</option>
+                        {% for agent in agents %}
+                        <option value="{{ agent.id }}" {% if ticket.assigned_to == agent.id %}selected{% endif %}>
+                            {{ agent.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+                    <a href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) }}" 
+                       class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                        Update Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    
+    form.addEventListener('submit', function(e) {
+        const title = document.getElementById('title').value.trim();
+        const description = document.getElementById('description').value.trim();
+        
+        if (!title || !description) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+            return false;
+        }
+        
+        if (title.length < 5) {
+            e.preventDefault();
+            alert('Title must be at least 5 characters long.');
+            return false;
+        }
+        
+        if (description.length < 10) {
+            e.preventDefault();
+            alert('Description must be at least 10 characters long.');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
