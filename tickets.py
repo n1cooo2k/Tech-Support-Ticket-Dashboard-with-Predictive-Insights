@@ -9,15 +9,84 @@ tickets_bp = Blueprint('tickets', __name__)
 @tickets_bp.route('/tickets')
 @login_required
 def ticket_list():
-    """Display list of tickets based on user role"""
+    """Display list of tickets based on user role with advanced filtering"""
     try:
-        if current_user.is_admin():
-            tickets = Ticket.get_all(user_role='admin')
-        else:
-            tickets = Ticket.get_all(user_role='agent', user_id=current_user.id)
+        # Get filter parameters from request
+        filters = {}
         
+        # Search filter
+        search = request.args.get('search', '').strip()
+        if search:
+            filters['search'] = search
+        
+        # Status filter
+        status = request.args.get('status', '').strip()
+        if status:
+            filters['status'] = status
+        
+        # Priority filter
+        priority = request.args.get('priority', '').strip()
+        if priority:
+            filters['priority'] = priority
+        
+        # Category filter
+        category = request.args.get('category', '').strip()
+        if category:
+            filters['category'] = category
+        
+        # User filters
+        created_by = request.args.get('created_by', '').strip()
+        if created_by:
+            filters['created_by'] = created_by
+        
+        assigned_to = request.args.get('assigned_to', '').strip()
+        if assigned_to:
+            filters['assigned_to'] = assigned_to
+        
+        # Date filters
+        date_from = request.args.get('date_from', '').strip()
+        if date_from:
+            filters['date_from'] = date_from
+        
+        date_to = request.args.get('date_to', '').strip()
+        if date_to:
+            filters['date_to'] = date_to
+        
+        updated_from = request.args.get('updated_from', '').strip()
+        if updated_from:
+            filters['updated_from'] = updated_from
+        
+        updated_to = request.args.get('updated_to', '').strip()
+        if updated_to:
+            filters['updated_to'] = updated_to
+        
+        # Sorting
+        sort_by = request.args.get('sort_by', 'created_at')
+        sort_order = request.args.get('sort_order', 'DESC')
+        filters['sort_by'] = sort_by
+        filters['sort_order'] = sort_order
+        
+        # Get tickets with filters
+        if current_user.is_admin():
+            tickets = Ticket.get_all(user_role='admin', filters=filters)
+        else:
+            tickets = Ticket.get_all(user_role='agent', user_id=current_user.id, filters=filters)
+        
+        # Get additional data for filters
         categories = Category.get_all()
-        return render_template('tickets/ticket_list.html', tickets=tickets, categories=categories)
+        
+        # Get all users for user filters (admin only)
+        users = []
+        if current_user.is_admin():
+            conn = get_db_connection()
+            users = conn.execute("SELECT DISTINCT username FROM users ORDER BY username").fetchall()
+            conn.close()
+        
+        return render_template('tickets/ticket_list.html', 
+                             tickets=tickets, 
+                             categories=categories, 
+                             users=users,
+                             current_filters=filters)
     except Exception as e:
         flash(f'Error loading tickets: {str(e)}', 'error')
         return redirect(url_for('dashboard'))
