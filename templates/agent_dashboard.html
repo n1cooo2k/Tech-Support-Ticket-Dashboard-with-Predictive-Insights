@@ -24,7 +24,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">My Tickets</dt>
-                            <dd class="text-lg font-medium text-gray-900">0</dd>
+                            <dd class="text-lg font-medium text-gray-900">{{ stats.total }}</dd>
                         </dl>
                     </div>
                 </div>
@@ -39,8 +39,8 @@
                     </div>
                     <div class="ml-5 w-0 flex-1">
                         <dl>
-                            <dt class="text-sm font-medium text-gray-500 truncate">Pending</dt>
-                            <dd class="text-lg font-medium text-gray-900">0</dd>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Open</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ stats.open }}</dd>
                         </dl>
                     </div>
                 </div>
@@ -56,7 +56,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 truncate">Resolved</dt>
-                            <dd class="text-lg font-medium text-gray-900">0</dd>
+                            <dd class="text-lg font-medium text-gray-900">{{ stats.resolved }}</dd>
                         </dl>
                     </div>
                 </div>
